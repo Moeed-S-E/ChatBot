@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;MOEED/&gt;-dev Chatbot</title>
+  <style>
+    /* * --- THEME VARIABLES --- 
+     */
+
+    /* Light Theme (Default) */
+    :root {
+      --bg-page: #F8FAFC;
+      --bg-container: #FFFFFF;
+      --bg-user-msg: #4F46E5;
+      --bg-bot-msg: #EFF6FF;
+      --bg-input: #FFFFFF;
+      --bg-btn: #4F46E5;
+      --bg-btn-hover: #4338CA;
+      --bg-error: #FEF2F2;
+      --bg-toggle-btn: #E0E7FF;
+      --bg-toggle-btn-hover: #C7D2FE;
+
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #94A3B8;
+      --text-on-primary: #FFFFFF;
+      --text-on-primary-muted: #D1D5DB;
+      --text-error: #EF4444;
+      --text-toggle-btn: #4338CA;
+
+      --border-primary: #e5e7eb;
+      --border-error: #FECACA;
+      
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.05);
+      --shadow-btn-hover: 0 0 0 8px rgba(79, 70, 229, 0.15);
+    }
+
+    /* Dark Theme */
+    body.theme-dark {
+      --bg-page: #0F172A;
+      --bg-container: #1E293B;
+      --bg-user-msg: #4F46E5;
+      --bg-bot-msg: #334155;
+      --bg-input: #1E293B;
+      --bg-btn: #4F46E5;
+      --bg-btn-hover: #4338CA;
+      --bg-error: #450a0a;
+      --bg-toggle-btn: #334155;
+      --bg-toggle-btn-hover: #475569;
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #64748B;
+      --text-on-primary: #FFFFFF;
+      --text-on-primary-muted: #D1D5DB;
+      --text-error: #F87171;
+      --text-toggle-btn: #C7D2FE;
+
+      --border-primary: #334155;
+      --border-error: #7f1d1d;
+      
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.2);
+      --shadow-btn-hover: 0 0 0 8px rgba(79, 70, 229, 0.25);
+    }
+
+    /* * --- BASE STYLES --- 
+     */
+
+    /* General Reset & Body */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 10px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Header Container */
+    .header-container {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      min-height: 60px; /* Ensure a consistent height for the header area */
+    }
+
+    /* Logo Image Styling */
+    .header-container img {
+      max-height: 100px; /* Adjust as needed, matching previous h1 height */
+      width: auto;
+      vertical-align: middle; /* Align with button */
+    }
+
+    /* Theme Toggle Button */
+    #theme-toggle {
+      background: var(--bg-toggle-btn);
+      color: var(--text-toggle-btn);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+      outline: none;
+    }
+    #theme-toggle:hover {
+      background: var(--bg-toggle-btn-hover);
+    }
+    #theme-toggle:active {
+      transform: scale(0.95);
+    }
+
+    /* Main Chat Container */
+    .chat-container {
+      width: 100%;
+      max-width: 700px;
+      background: var(--bg-container);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      height: 75vh;
+      max-height: 800px;
+      overflow: hidden;
+      border: 1px solid var(--border-primary);
+      transition: background 0.3s, border 0.3s;
+    }
+
+    /* Messages Area */
+    .messages {
+      flex: 1;
+      padding: 25px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* Space between messages */
+    }
+
+    /* Individual Message Bubbles */
+    .message {
+      padding: 12px 18px;
+      border-radius: 20px;
+      line-height: 1.5;
+      max-width: 75%;
+      word-wrap: break-word; /* Prevents long words from overflowing */
+      transition: background 0.3s, color 0.3s;
+    }
+    
+    .message strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* User Message */
+    .user {
+      align-self: flex-end;
+      background: var(--bg-user-msg);
+      color: var(--text-on-primary);
+      border-bottom-right-radius: 4px; /* "Tail" effect */
+    }
+    .user strong {
+      color: var(--text-on-primary-muted);
+    }
+
+    /* Bot/Error Message */
+    .bot {
+      align-self: flex-start;
+      background: var(--bg-bot-msg);
+      color: var(--text-secondary);
+      border-bottom-left-radius: 4px; /* "Tail" effect */
+    }
+    
+    .bot.error {
+      background: var(--bg-error);
+      color: var(--text-error);
+      border: 1px solid var(--border-error);
+    }
+
+    /* Input Area */
+    .input-area {
+      display: flex;
+      border-top: 1px solid var(--border-primary);
+      background: var(--bg-input);
+      transition: background 0.3s, border 0.3s;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      border: none;
+      padding: 18px;
+      font-size: 16px;
+      outline: none;
+      background: transparent;
+      color: var(--text-secondary);
+    }
+    input[type="text"]::placeholder {
+      color: var(--text-muted);
+    }
+
+    button {
+      background: var(--bg-btn);
+      color: var(--text-on-primary);
+      border: none;
+      padding: 0 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.15);
+      transition: background 0.3s, box-shadow 0.3s, transform 0.1s;
+      outline: none;
+    }
+    button:hover {
+      background: var(--bg-btn-hover);
+      box-shadow: var(--shadow-btn-hover);
+    }
+    button:active {
+      transform: scale(0.98); /* Click effect */
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+      .header-container {
+        padding: 15px 15px 10px 15px;
+        background: var(--bg-container); /* Match h1 background */
+        min-height: 50px; /* Slightly smaller header on mobile if needed */
+      }
+      .header-container img {
+        max-height: 100px; /* Adjust for mobile, slightly smaller */
+      }
+      #theme-toggle {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+      .chat-container {
+        width: 100%;
+        height: 75vh; 
+        max-height: 75vh;
+        margin-top: 0;
+        border-radius: 0; /* No radius on mobile */
+        border: none;
+        box-shadow: none;
+      }
+      .messages {
+        padding: 15px;
+      }
+      .message {
+        max-width: 85%;
+      }
+      .input-area {
+        padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone X notch */
+      }
+      input[type="text"] {
+        padding: 15px;
+      }
+      button {
+        padding: 0 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="header-container">
+    <img src="logo.png" alt="MOEED/DEV Logo">
+    <button id="theme-toggle">Toggle Theme</button>
+  </div>
+
+  <div class="chat-container">
+    <div class="messages" id="messages">
+      <div class="message bot">
+        <strong>Bot:</strong> Hi! How can I help you today?
+      </div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // --- START OF YOUR MODIFICATIONS ---
+
+    // 1. Paste your Base64 encoded API key here
+    const encodedApiKey = "YWtfMWV2NU9POGhXMWx6MjZKMXpkNFU4NktEMmZJNHQ="; 
+
+    // API Configuration
+    const API_URL = "https://api.longcat.chat/openai/v1/chat/completions";
+    let apiKey = null; // Will be set by the fuckyou() function
+
+    /**
+     * Decodes the Base64 API key and stores it in the apiKey variable.
+     */
+    function fuckyou() {
+      try {
+        // Decode the Base64 string using atob()
+        const decodedKey = atob(encodedApiKey);
+        apiKey = decodedKey.trim();
+        
+        if (!apiKey || apiKey === "YWtfMWV2NU9POGhXMWx6MjZKMXpkNFU4NktEMmZJNHQ=") {
+           throw new Error('Please add your encoded API key to the "encodedApiKey" variable.');
+        }
+        console.log("API Key decoded and loaded successfully.");
+      } catch (error) {
+        console.error("Error decoding API key:", error);
+        addMessage("Error", `Could not decode or load API key. ${error.message}`, "bot", true);
+      }
+    }
+    
+    // --- END OF YOUR MODIFICATIONS ---
+
+
+    // Chat History
+    const messages = [
+      { role: "system", content: "You are a helpful assistant." }
+    ];
+
+    // DOM Elements
+    const messagesDiv = document.getElementById("messages");
+    const userInput = document.getElementById("userInput");
+    const themeToggleBtn = document.getElementById("theme-toggle"); // NEW
+
+    /**
+     * Sends the user's message to the chatbot API.
+     */
+    async function sendMessage() {
+      const userText = userInput.value.trim();
+      if (!userText) return;
+
+      // Check if API key is loaded
+      if (!apiKey) {
+        addMessage("Error", "API Key is not loaded. Cannot send message.", "bot", true);
+        return;
+      }
+
+      addMessage("You", userText, "user");
+      userInput.value = "";
+      messages.push({ role: "user", content: userText });
+
+      const payload = {
+        model: "LongCat-Flash-Chat",
+        messages: messages,
+        max_tokens: 1000,
+        temperature: 0.7
+      };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`, // Use the loaded API key
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const result = await response.json();
+        const botReply = result.choices[0].message.content;
+        
+        addMessage("Bot", botReply, "bot");
+        messages.push({ role: "assistant", content: botReply });
+
+      } catch (error) {
+        addMessage("Error", "Something went wrong. Check console for details.", "bot", true);
+        console.error(error);
+      }
+    }
+
+    /**
+     * Adds a message to the chat display.
+     */
+    function addMessage(sender, text, className, isError = false) {
+      const msg = document.createElement("div");
+      msg.className = `message ${className}`;
+      if (isError) {
+        msg.classList.add("error");
+      }
+      
+      // Sanitize text slightly to prevent HTML injection
+      const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      msg.innerHTML = `<strong>${sender}:</strong> ${safeText.replace(/\n/g, '<br>')}`; // Replace newlines with <br>
+      
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to bottom
+    }
+
+    // --- NEW: THEME FUNCTIONS ---
+
+    /**
+     * Toggles the 'theme-dark' class on the body and saves the preference.
+     */
+    function toggleTheme() {
+      document.body.classList.toggle("theme-dark");
+      
+      // Save preference to localStorage
+      if (document.body.classList.contains("theme-dark")) {
+        localStorage.setItem("theme", "dark");
+        themeToggleBtn.textContent = "Light Mode"; // Update button text
+      } else {
+        localStorage.setItem("theme", "light");
+        themeToggleBtn.textContent = "Dark Mode"; // Update button text
+      }
+    }
+
+    /**
+     * Loads the saved theme preference from localStorage.
+     */
+    function loadTheme() {
+      const preferredTheme = localStorage.getItem("theme");
+      if (preferredTheme === "dark") {
+        document.body.classList.add("theme-dark");
+        themeToggleBtn.textContent = "Light Mode";
+      } else {
+        themeToggleBtn.textContent = "Dark Mode";
+      }
+    }
+
+    // --- Event Listeners ---
+
+    // Load theme and API key when the page is ready
+    document.addEventListener("DOMContentLoaded", function() {
+      loadTheme(); // Load saved theme first
+      fuckyou();   // Then load API key
+    });
+    
+    // NEW: Add click listener for the theme toggle button
+    themeToggleBtn.addEventListener("click", toggleTheme);
+
+    // Send message on Enter key press
+    userInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+  </script>
+</body>
+</html>
